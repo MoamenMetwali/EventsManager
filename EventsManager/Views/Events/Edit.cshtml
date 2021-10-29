@@ -1,0 +1,17 @@
+﻿@model Event
+
+<form method="post" asp-action="Edit">
+    <div class="form-group col-6">
+        <input hidden asp-for="Id" value="@Model.Id"/>
+        <input hidden asp-for="Active" value="@Model.Active"/>
+        <input hidden asp-for="Deleted" value="@Model.Deleted"/>
+        <input hidden asp-for="UsersNo" value="@Model.UsersNo"/>
+        <label>Title</label>
+        <input type="text" class="form-control" asp-for="Title" placeholder="Enter the event's title" value="@Model.Title" required>
+        <label>Description</label>
+        <input type="text" class="form-control" asp-for="Description" placeholder="Enter the event's description" value="@Model.Description" required>
+        <label>Event's date</label>
+        <input type="date" value="@Model.Date.ToString("yyyy-MM-dd")" min='@DateTime.Now.Date.ToString("yyyy-MM-dd")' class="form-control" asp-for="Date" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>

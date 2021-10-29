@@ -1,0 +1,13 @@
+﻿@model Event
+
+<form method="post" asp-action="Create">
+    <div class="form-group col-6">
+        <label>Title</label>
+        <input type="text" class="form-control" asp-for="Title" placeholder="Enter the event's title" required>
+        <label>Description</label>
+        <input type="text" class="form-control" asp-for="Description" placeholder="Enter the event's description" required>
+        <label>Event's date</label>
+        <input type="date" value="@DateTime.Now.Date.ToString("yyyy-MM-dd")" min='@DateTime.Now.Date.ToString("yyyy-MM-dd")' class="form-control" asp-for="Date" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>

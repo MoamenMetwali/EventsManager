@@ -1,0 +1,189 @@
+﻿@model IEnumerable<Event>
+@section Head{
+    <style>
+        .switch {
+            display: inline-block;
+            height: 34px;
+            position: relative;
+            width: 60px;
+        }
+
+            .switch input {
+                display: none;
+            }
+
+        .slider {
+            background-color: #ccc;
+            bottom: 0;
+            cursor: pointer;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: .4s;
+        }
+
+            .slider:before {
+                background-color: #fff;
+                bottom: 4px;
+                content: "";
+                height: 26px;
+                left: 4px;
+                position: absolute;
+                transition: .4s;
+                width: 26px;
+            }
+
+        input:checked + .slider {
+            background-color: #66bb6a;
+        }
+
+            input:checked + .slider:before {
+                transform: translateX(26px);
+            }
+
+        .slider.round {
+            border-radius: 34px;
+        }
+
+            .slider.round:before {
+                border-radius: 50%;
+            }
+    </style>
+}
+<a class="btn btn-outline-primary" asp-action="Create">Create an Event</a>
+@{ var i = 0;}
+<div class="row">
+    @foreach (var item in Model)
+    {
+        <div class="card col-4">
+            <div class="card-body">
+                @{var btnstyle = item.Active == false ? "" : "checked";}
+                <span>Press to change the status of the event!</span>
+                <label class="switch">
+                    <input type="checkbox" @btnstyle onclick="ChangeStatus('@item.Id')" data-context="success">
+                    <span class="slider round"></span>
+                </label>
+                <h5 class="card-title">Event: @item.Title</h5>
+                <h6 class="card-subtitle mb-2 text-muted">Date: @item.Date.ToString("yyyy-MM-dd")</h6>
+                <p class="card-text"><a href="#" data-toggle="modal" data-target="#UsersModal_@i">Number of users: @item.UsersNo</a><span style="font-size:0.65em;" class="text-muted"> (click to display users per event)</span></p>
+                <a data-toggle="modal" data-target="#DetailsModal" class="btn btn-outline-primary"
+                   onclick="ShowEvent('@item.Title',
+                                  '@item.Date.ToString("yyyy-MM-dd")',
+                                  '@item.Description',
+                                  ('@item.Active'?'Active':'Disabled'),
+                                  '@item.UsersNo',
+                                  '@item.Id')">Open</a>
+                <a asp-action="Edit" asp-route-Id="@item.Id" class="btn btn-outline-info">Edit</a>
+                <a onclick="Delete('@item.Id',this)" class="btn btn-outline-danger">Delete</a>
+                <label id="delconfirm" style="display:none">Are you sure you want to delete ...?</label>
+                <a asp-controller="Users" asp-action="Register" asp-route-Id="@item.Id" class="btn btn-outline-secondary">Add User</a>
+            </div>
+        </div>
+        <div id="UsersModal_@i" class="modal fade" style="display: none;" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5>List of users of (@item.Title)</h5>
+                        <button type="button" class="close p-0 m-0" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true"><i class="fa fa-times"></i></span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Mobile</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var user in item.Users)
+                                {
+                                    <tr>
+                                        <td>@user.Name</td>
+                                        <td>@user.Mobile</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        i++;
+    }
+</div>
+<div id="DetailsModal" class="modal fade" style="display: none;" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"></h5>
+                <a id="modal-register" class="btn btn-success">Register for the event</a>
+                <button type="button" class="close p-0 m-0" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fa fa-times"></i></span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h6 id="modal-date"></h6>
+                <p id="modal-desc"></p>
+                <p id="modal-status"></p>
+                <p id="modal-users"></p>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts{
+    <script type="text/javascript">
+        function ShowEvent(title, date, desc, status, number, id) {
+            $(".modal-title").html(title);
+            $("#modal-date").html(`Date: ${date}`);
+            $("#modal-desc").html(desc);
+            $("#modal-status").html(`Status: ${status}`);
+            $("#modal-users").html(`Number of users: ${number}`);
+            $("#modal-register").attr("href", '/Users/Register/' + id);
+        }
+    </script>
+    <script>
+        function Delete(Id, obj) {
+
+            if (confirm($("#delconfirm").text())) {
+                $.ajax({
+                    url: '/Events/Delete/' + Id,
+                    type: "Delete",
+                    dataType: "json",
+                    success: function (response) {
+                        $(obj).parent().remove();
+                        alert('Event is deleted successfully!');
+                    },
+                    error: function () {
+                        alert('Failed to delete the event!');
+                    }
+                });
+            }
+            return false;
+        }
+        function ChangeStatus(Id) {
+            $.ajax({
+                url: `/Events/ChangeStatus/` + Id,
+                contentType: "application/json",
+                type: "PUT",
+                success: function () {
+                    alert("Status Changed Successfully..!");
+                },
+                error: function () {
+                    alert("Can't Change Status");
+                }
+            });
+        }
+    </script>
+    @if (TempData["alert"] as string != null)
+    {
+        <script type="text/javascript">
+            window.onload = function () {
+                alert("@(TempData["alert"] as string)");
+            };
+        </script>
+
+    }
+}
